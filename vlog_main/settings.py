@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'blogs.apps.BlogsConfig',
     'django.contrib.humanize',
     'assignments',
+    'crispy_forms',
+    'crispy_bootstrap4',
 ]
 
 MIDDLEWARE = [
@@ -137,3 +139,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR /'media'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'

@@ -10,13 +10,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('category/',include('blogs.urls')),
-    path('<slug:slug>/', blogsviews.blogs, name='blogs'),
-
+    path('blogs/<slug:slug>/', blogsviews.blogs, name='blogs'),
     #search endpoint
     path('blogs/search/',blogsviews.search, name='search'),
-    
-
+    # Registration and Login URLs
+    path('register/',views.register, name='register'),
+    path('login/',views.login, name='login'),
+    path('logout/',views.logout, name='logout'),
 ]
-
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
