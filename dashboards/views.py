@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect , get_object_or_404
 from blogs.models import Category , Blog
-from .forms import CategoryForm
+from .forms import CategoryForm ,BlogPostForm
 from django.contrib.auth.decorators import login_required
+from django.template.defaultfilters import slugify
 
 # Create your views here.
 @login_required(login_url='login')
@@ -11,8 +12,8 @@ def dashboard(request):
     blogs_count= Blog.objects.all().count()
 
     context ={
-        category_count: category_count,
-        blogs_count: blogs_count,   
+        'category_count': category_count,
+        'blogs_count': blogs_count,   
     }
     return render(request, 'dashboard/dashboard.html', context)
 
@@ -41,7 +42,7 @@ def add_category(request):
 def edit_category(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
-        form = CategoryForm(request.POST, instance=category)
+        form = CategoryForm(request.POST, instance=category)# instance to update existing category
         if form.is_valid():
             form.save()
             return redirect('categories')
@@ -58,3 +59,57 @@ def delete_category(request, pk):
     category = get_object_or_404(Category, pk=pk)
     category.delete()
     return redirect('categories')
+
+
+def posts(request):
+    posts = Blog.objects.all()
+    context={
+        'posts': posts,
+    }
+    return render(request, 'dashboard/posts.html', context)
+
+def add_post(request):
+    if request.method == 'POST':
+        form = BlogPostForm(request.POST, request.FILES)# request.FILES for image upload
+        if form.is_valid():
+            post=form.save(commit=False)#temperary saves the form data
+            post.author = request.user# assign the logged-in user as the author
+            post.save()
+            title = form.cleaned_data['title']
+            post.slug = slugify(title) + '-'+str(post.id)
+            post.save()
+            return redirect('posts')
+        else:
+            print('form invalid')  
+            print(form.errors)  
+    form= BlogPostForm()
+    context={
+        'form': form,
+    }
+    return render(request, 'dashboard/add_post.html', context)
+    #We dont need write context separatly if there is only one variable to pass
+    # we can assign it directly like below
+    # return render(request, 'dashboard/add_post.html', {'form': form})
+
+
+def edit_post(request, pk):
+    post= get_object_or_404(Blog, pk=pk)
+    if request.method =='POST':
+        form = BlogPostForm(request.POST, request.FILES, instance=post)# instance to update existing post
+        if form.is_valid():
+            form.save()
+            title = form.cleaned_data['title']
+            post.slug = slugify(title) + '-'+str(post.id)
+            post.save()
+            return redirect('posts')
+    form = BlogPostForm(instance=post)# populate the form with existing data
+    context={
+        'form': form,
+        'post': post,
+    }
+    return render(request, 'dashboard/edit_post.html',context)
+
+def delete_post(request, pk):
+    post = get_object_or_404(Blog, pk=pk)
+    post.delete()
+    return redirect('posts')
